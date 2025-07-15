@@ -12,7 +12,7 @@ contract StarGuardScript is Script {
     function run() public {
         vm.startBroadcast();
 
-        starGuard = new StarGuard();
+        starGuard = new StarGuard(address(0), uint256(24 hours));
 
         vm.stopBroadcast();
     }
