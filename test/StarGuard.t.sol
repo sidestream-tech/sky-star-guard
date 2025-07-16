@@ -1,22 +1,30 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.21;
 
-import { DssTest } from "dss-test/DssTest.sol";
 import { Vm } from "forge-std/Vm.sol";
+import { stdStorage, StdStorage } from "forge-std/Test.sol";
+import { DssTest } from "dss-test/DssTest.sol";
+import { SubProxy } from "endgame-toolkit/src/SubProxy.sol";
 import { StarGuard } from "../src/StarGuard.sol";
+import { StandardStarSpell } from "./mocks/StandardStarSpell.sol";
+import { MaliciousStarSpell } from "./mocks/MaliciousStarSpell.sol";
 
 contract StarGuardTest is DssTest {
-    StarGuard public starGuard;
+    using stdStorage for StdStorage;
+
+    StarGuard internal starGuard;
+    address internal subProxy;
+    address internal starSpell;
 
     uint256 internal constant expiration = 24 hours;
-    // Spark Proxy: https://github.com/marsfoundation/sparklend-deployments/blob/bba4c57d54deb6a14490b897c12a949aa035a99b/script/output/1/primary-sce-latest.json#L2
-    address internal constant subProxy = 0x3300f198988e4C9C63F75dF86De36421f06af8c4;
+    address internal constant unauthedUser = address(0xB0B);
 
     function setUp() public {
-        string memory MAINNET_RPC_URL = vm.envString("MAINNET_RPC_URL");
-        vm.createSelectFork(MAINNET_RPC_URL);
-
+        subProxy = address(new SubProxy());
+        starSpell = address(new StandardStarSpell());
         starGuard = new StarGuard(subProxy, expiration);
+        // SubProxy is expected to authorize StarGuard
+        SubProxy(subProxy).rely(address(starGuard));
     }
 
     function testConstructor() public {
@@ -50,7 +58,7 @@ contract StarGuardTest is DssTest {
         authedMethods[0] = starGuard.plot.selector;
         authedMethods[1] = starGuard.drop.selector;
 
-        vm.startPrank(address(0xB0B));
+        vm.startPrank(unauthedUser);
         checkModifier(address(starGuard), "StarGuard/not-authorized", authedMethods);
         vm.stopPrank();
     }
@@ -91,5 +99,55 @@ contract StarGuardTest is DssTest {
         assertEq(bytes32(entries[0].data), spellTag);
         assertEq(entries[1].topics[0], keccak256("Drop(address)"));
         assertEq(address(uint160(uint256(entries[1].topics[1]))), spell);
+    }
+
+    function testExec() public {
+        starGuard.plot(starSpell, starSpell.codehash);
+        vm.prank(unauthedUser);
+        starGuard.exec();
+    }
+
+    function testExecUnplotted() public {
+        vm.prank(unauthedUser);
+        vm.expectRevert("StarGuard/unplotted-spell");
+        starGuard.exec();
+    }
+
+    function testExecWrongCodehash() public {
+        starGuard.plot(starSpell, bytes32("irrelevant codehash"));
+        vm.prank(unauthedUser);
+        vm.expectRevert("StarGuard/wrong-codehash");
+        starGuard.exec();
+    }
+
+    function testExecExpiredSpell() public {
+        starGuard.plot(starSpell, starSpell.codehash);
+        vm.warp(block.timestamp + starGuard.expiration() + 1);
+        vm.prank(unauthedUser);
+        vm.expectRevert("StarGuard/expired-spell");
+        starGuard.exec();
+    }
+
+    function testExecOwnerChange() public {
+        // deploy StarGuard to a pre-defined address
+        StarGuard starGuardAtKnownAddress = StarGuard(address(0xBEEF));
+        // set code
+        vm.etch(address(starGuardAtKnownAddress), address(starGuard).code);
+        // authorize the deployer
+        stdstore
+            .target(address(starGuardAtKnownAddress))
+            .sig("wards(address)")
+            .with_key(address(this))
+            .checked_write(1);
+        // SubProxy is expected to authorize StarGuard
+        SubProxy(subProxy).rely(address(starGuardAtKnownAddress));
+        // deploy malicious spell
+        address maliciousStarSpell = address(new MaliciousStarSpell());
+        // plot malicious spell
+        starGuardAtKnownAddress.plot(maliciousStarSpell, maliciousStarSpell.codehash);
+        // execute
+        vm.prank(unauthedUser);
+        vm.expectRevert("StarGuard/subProxy-owner-change");
+        starGuardAtKnownAddress.exec();
     }
 }

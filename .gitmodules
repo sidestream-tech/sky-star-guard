@@ -4,3 +4,6 @@
 [submodule "lib/dss-test"]
 	path = lib/dss-test
 	url = https://github.com/sky-ecosystem/dss-test
+[submodule "lib/endgame-toolkit"]
+	path = lib/endgame-toolkit
+	url = https://github.com/sky-ecosystem/endgame-toolkit

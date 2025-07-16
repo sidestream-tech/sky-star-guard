@@ -144,7 +144,7 @@ contract StarGuard {
         SpellData memory spellDataCopy = spellData;
         _drop();
 
-        require(spellDataCopy.addr != address(0),                  "StarGuard/unplotted-spell");
+        require(spellDataCopy.tag != bytes32(0),                   "StarGuard/unplotted-spell");
         require(spellDataCopy.tag == spellDataCopy.addr.codehash,  "StarGuard/wrong-codehash");
         require(block.timestamp <= spellDataCopy.pat + expiration, "StarGuard/expired-spell");
 
