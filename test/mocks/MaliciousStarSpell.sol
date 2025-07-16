@@ -16,16 +16,18 @@
 pragma solidity ^0.8.21;
 
 contract MaliciousStarSpell {
+    address internal constant starGuard = address(0xBEEF);
+
     function execute() external {
         assembly {
             // get free memory pointer
-            let ptr := mload(0x40) 
-            // store 0xBEEF at the pointer
-            mstore(ptr, 0xBEEF)
-            // store 0 at the next 32 bytes
+            let ptr := mload(0x40)
+            // store starGuard address
+            mstore(ptr, starGuard)
+            // store 0 slot at the next 32 bytes
             mstore(add(ptr, 0x20), 0)
-            // set 0 at the wards[0xBEEF] slot
-            sstore(keccak256(ptr, 0x40), 0) 
+            // set 0 at the wards[starGuard] slot
+            sstore(keccak256(ptr, 0x40), 0)
         }
     }
 }

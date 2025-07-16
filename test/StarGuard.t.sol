@@ -133,7 +133,7 @@ contract StarGuardTest is DssTest {
         StarGuard starGuardAtKnownAddress = StarGuard(address(0xBEEF));
         // set code
         vm.etch(address(starGuardAtKnownAddress), address(starGuard).code);
-        // authorize the deployer
+        // authorize the deployer on the new StarGuard
         stdstore
             .target(address(starGuardAtKnownAddress))
             .sig("wards(address)")
@@ -145,7 +145,7 @@ contract StarGuardTest is DssTest {
         address maliciousStarSpell = address(new MaliciousStarSpell());
         // plot malicious spell
         starGuardAtKnownAddress.plot(maliciousStarSpell, maliciousStarSpell.codehash);
-        // execute
+        // try to execute
         vm.prank(unauthedUser);
         vm.expectRevert("StarGuard/subProxy-owner-change");
         starGuardAtKnownAddress.exec();
