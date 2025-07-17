@@ -37,14 +37,14 @@ contract StarGuard {
 
     struct SpellData {
         address addr; // Spell address
-        bytes32 tag;  // Spell codehash
-        uint256 pat;  // Plotted at time
+        bytes32 tag; // Spell codehash
+        uint256 pat; // Plotted at time
     }
 
     // ---------- Immutables ----------
 
     /// @notice Star admin contract (instance of `SubProxy`)
-    SubProxyLike immutable public subProxy;
+    SubProxyLike public immutable subProxy;
 
     // ---------- Events ----------
 
@@ -88,7 +88,7 @@ contract StarGuard {
 
     // ---------- Modifiers ----------
 
-    modifier auth {
+    modifier auth() {
         require(wards[msg.sender] == 1, "StarGuard/not-authorized");
         _;
     }
@@ -131,7 +131,9 @@ contract StarGuard {
     function file(bytes32 what, uint256 data) external auth {
         if (what == "expiration") {
             expiration = data;
-        } else revert("StarGuard/file-unrecognized-param");
+        } else {
+            revert("StarGuard/file-unrecognized-param");
+        }
         emit File(what, data);
     }
 
@@ -139,15 +141,15 @@ contract StarGuard {
 
     function plot(address addr_, bytes32 tag_) public auth {
         spellData.addr = addr_;
-        spellData.tag  = tag_;
-        spellData.pat  = block.timestamp;
+        spellData.tag = tag_;
+        spellData.pat = block.timestamp;
         emit Plot(addr_, tag_);
     }
 
     function _drop() private {
         spellData.addr = address(0);
-        spellData.tag  = bytes32(0);
-        spellData.pat  = uint256(0);
+        spellData.tag = bytes32(0);
+        spellData.pat = uint256(0);
     }
 
     function drop() public auth {
@@ -159,8 +161,8 @@ contract StarGuard {
         SpellData memory spellDataCopy = spellData;
         _drop();
 
-        require(spellDataCopy.tag != bytes32(0),                   "StarGuard/unplotted-spell");
-        require(spellDataCopy.tag == spellDataCopy.addr.codehash,  "StarGuard/wrong-codehash");
+        require(spellDataCopy.tag != bytes32(0), "StarGuard/unplotted-spell");
+        require(spellDataCopy.tag == spellDataCopy.addr.codehash, "StarGuard/wrong-codehash");
         require(block.timestamp <= spellDataCopy.pat + expiration, "StarGuard/expired-spell");
 
         subProxy.exec(spellDataCopy.addr, abi.encodeWithSignature("execute()"));

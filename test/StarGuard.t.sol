@@ -16,13 +16,13 @@
 
 pragma solidity ^0.8.21;
 
-import { Vm } from "forge-std/Vm.sol";
-import { stdStorage, StdStorage } from "forge-std/Test.sol";
-import { DssTest } from "dss-test/DssTest.sol";
-import { SubProxy } from "endgame-toolkit/src/SubProxy.sol";
-import { StarGuard } from "../src/StarGuard.sol";
-import { StandardStarSpell } from "./mocks/StandardStarSpell.sol";
-import { MaliciousStarSpell } from "./mocks/MaliciousStarSpell.sol";
+import {Vm} from "forge-std/Vm.sol";
+import {stdStorage, StdStorage} from "forge-std/Test.sol";
+import {DssTest} from "dss-test/DssTest.sol";
+import {SubProxy} from "endgame-toolkit/src/SubProxy.sol";
+import {StarGuard} from "../src/StarGuard.sol";
+import {StandardStarSpell} from "./mocks/StandardStarSpell.sol";
+import {MaliciousStarSpell} from "./mocks/MaliciousStarSpell.sol";
 
 contract StarGuardTest is DssTest {
     using stdStorage for StdStorage;
@@ -44,12 +44,12 @@ contract StarGuardTest is DssTest {
 
     function testConstructor() public {
         vm.recordLogs();
-        
+
         // Deploy contract
         StarGuard newStarGuard = new StarGuard(subProxy, expiration);
-        
+
         // Check emitted log
-        Vm.Log[] memory entries = vm.getRecordedLogs(); 
+        Vm.Log[] memory entries = vm.getRecordedLogs();
         assertEq(entries.length, 1);
         assertEq(entries[0].topics[0], keccak256("Rely(address)"));
         assertEq(address(uint160(uint256(entries[0].topics[1]))), address(this));
@@ -84,8 +84,8 @@ contract StarGuardTest is DssTest {
         {
             (address addr, bytes32 tag, uint256 pat) = starGuard.spellData();
             assertEq(addr, address(0));
-            assertEq(tag,  bytes32(0));
-            assertEq(pat,  uint256(0));
+            assertEq(tag, bytes32(0));
+            assertEq(pat, uint256(0));
         }
 
         // Plot
@@ -93,8 +93,8 @@ contract StarGuardTest is DssTest {
         {
             (address addr, bytes32 tag, uint256 pat) = starGuard.spellData();
             assertEq(addr, spell);
-            assertEq(tag,  spellTag);
-            assertEq(pat,  block.timestamp);
+            assertEq(tag, spellTag);
+            assertEq(pat, block.timestamp);
         }
 
         // Drop
@@ -102,12 +102,12 @@ contract StarGuardTest is DssTest {
         {
             (address addr, bytes32 tag, uint256 pat) = starGuard.spellData();
             assertEq(addr, address(0));
-            assertEq(tag,  bytes32(0));
-            assertEq(pat,  uint256(0));
+            assertEq(tag, bytes32(0));
+            assertEq(pat, uint256(0));
         }
 
         // Check logs
-        Vm.Log[] memory entries = vm.getRecordedLogs(); 
+        Vm.Log[] memory entries = vm.getRecordedLogs();
         assertEq(entries.length, 2);
         assertEq(entries[0].topics[0], keccak256("Plot(address,bytes32)"));
         assertEq(address(uint160(uint256(entries[0].topics[1]))), spell);
@@ -164,11 +164,7 @@ contract StarGuardTest is DssTest {
         // set code
         vm.etch(address(starGuardAtKnownAddress), address(starGuard).code);
         // authorize the deployer on the new StarGuard
-        stdstore
-            .target(address(starGuardAtKnownAddress))
-            .sig("wards(address)")
-            .with_key(address(this))
-            .checked_write(1);
+        stdstore.target(address(starGuardAtKnownAddress)).sig("wards(address)").with_key(address(this)).checked_write(1);
         // SubProxy is expected to authorize StarGuard
         SubProxy(subProxy).rely(address(starGuardAtKnownAddress));
         // deploy malicious spell
