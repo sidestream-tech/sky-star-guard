@@ -107,6 +107,21 @@ contract StarGuardTest is DssTest {
         starGuard.exec();
     }
 
+    function testPlotBeforeDeploy() public {
+        // plot empty address
+        address addressForTheNewSpell = address(0xC0FFEE);
+        starGuard.plot(addressForTheNewSpell, starSpell.codehash);
+        // try to execute empty address
+        vm.prank(unauthedUser);
+        vm.expectRevert();
+        starGuard.exec();
+        // deploy spell into the address
+        vm.etch(addressForTheNewSpell, starSpell.code);
+        // execute it
+        vm.prank(unauthedUser);
+        starGuard.exec();
+    }
+
     function testExecUnplotted() public {
         vm.prank(unauthedUser);
         vm.expectRevert("StarGuard/unplotted-spell");
