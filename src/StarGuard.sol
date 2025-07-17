@@ -17,8 +17,19 @@
 pragma solidity ^0.8.21;
 
 interface SubProxyLike {
+    /**
+     * @notice Executes a calldata-encoded call `args` in the context of `target`
+     * @param target The target contract
+     * @param args The calldata-encoded call
+     * @return out The result of the execution
+     */
     function exec(address target, bytes memory args) external payable returns (bytes memory out);
-    function wards(address) external view returns (uint256);
+    /**
+     * @notice Check owner access
+     * @param usr The address to check
+     * @return allowed The result of the check
+     */
+    function wards(address usr) external view returns (uint256 allowed);
 }
 
 contract StarGuard {
@@ -30,21 +41,27 @@ contract StarGuard {
     /// @notice Maximum delay in seconds between whitelisting and execution
     uint256 public expiration;
 
-    /// @notice Whitelisted Star payload to be executed by `SubProxy`
+    /// @notice "Whitelisted" star payload data
     SpellData public spellData;
-
-    // ---------- Structs ----------
-
-    struct SpellData {
-        address addr; // Spell address
-        bytes32 tag; // Spell codehash
-        uint256 pat; // Plotted at time
-    }
 
     // ---------- Immutables ----------
 
     /// @notice Star admin contract (instance of `SubProxy`)
     SubProxyLike public immutable subProxy;
+
+    // ---------- Structs ----------
+
+    /**
+     * @notice Star payload data
+     * @param addr The payload address
+     * @param tag The keccak hash of the bytecode
+     * @param pat Time when the payload was plotted
+     */
+    struct SpellData {
+        address addr;
+        bytes32 tag;
+        uint256 pat;
+    }
 
     // ---------- Events ----------
 
@@ -68,26 +85,29 @@ contract StarGuard {
     event File(bytes32 indexed what, uint256 data);
 
     /**
-     * @notice A spell has been whitelisted
-     * @param addr The spell address
-     * @param tag The spell codehash
+     * @notice A payload has been whitelisted
+     * @param addr The payload address
+     * @param tag The payload codehash
      */
     event Plot(address indexed addr, bytes32 tag);
 
     /**
-     * @notice A previously whitelisted spell has been dropped
-     * @param addr The spell address
+     * @notice A previously "whitelisted" payload has been dropped
+     * @param addr The payload address
      */
     event Drop(address indexed addr);
 
     /**
-     * @notice A previously whitelisted spell has been executed
-     * @param addr The spell address
+     * @notice A previously whitelisted payload has been executed
+     * @param addr The payload address
      */
     event Exec(address indexed addr);
 
     // ---------- Modifiers ----------
 
+    /**
+     * @notice Check if sender is authorized
+     */
     modifier auth() {
         require(wards[msg.sender] == 1, "StarGuard/not-authorized");
         _;
@@ -124,9 +144,9 @@ contract StarGuard {
     }
 
     /**
-     * @notice Common function to update meta-values
-     * @param what Name of the variable
-     * @param data New value of the ariable
+     * @notice Updates mutable variables
+     * @param what Name of the mutable variable
+     * @param data New value of the variable
      */
     function file(bytes32 what, uint256 data) external auth {
         if (what == "expiration") {
@@ -139,6 +159,11 @@ contract StarGuard {
 
     // ---------- Operations ----------
 
+    /**
+     * @notice "Whitelists" the payload for the future execution
+     * @param addr_ The Star payload to be whitelisted
+     * @param tag_ The keccak hash of the bytecode
+     */
     function plot(address addr_, bytes32 tag_) public auth {
         spellData.addr = addr_;
         spellData.tag = tag_;
@@ -146,17 +171,26 @@ contract StarGuard {
         emit Plot(addr_, tag_);
     }
 
+    /**
+     * @notice Removes the payload from the "whitelist"
+     */
     function _drop() private {
         spellData.addr = address(0);
         spellData.tag = bytes32(0);
         spellData.pat = uint256(0);
     }
 
+    /**
+     * @notice Removes the payload from the "whitelist"
+     */
     function drop() public auth {
         emit Drop(spellData.addr);
         _drop();
     }
 
+    /**
+     * @notice Executes previously scheduled payload
+     */
     function exec() public {
         SpellData memory spellDataCopy = spellData;
         _drop();
