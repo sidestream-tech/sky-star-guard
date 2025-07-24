@@ -33,7 +33,7 @@ interface SubProxyLike {
 }
 
 contract StarGuard {
-    // ---------- Storage variables ----------
+    // --- storage variables ---
 
     /// @notice Addresses with owner access on this contract
     mapping(address usr => uint256 allowed) public wards;
@@ -44,12 +44,12 @@ contract StarGuard {
     /// @notice "Whitelisted" star payload data
     SpellData public spellData;
 
-    // ---------- Immutables ----------
+    // --- immutables ---
 
     /// @notice Star admin contract (instance of `SubProxy`)
     SubProxyLike public immutable subProxy;
 
-    // ---------- Structs ----------
+    // --- structs ---
 
     /**
      * @notice Star payload data
@@ -63,7 +63,7 @@ contract StarGuard {
         uint256 pat;
     }
 
-    // ---------- Events ----------
+    // --- events ---
 
     /**
      * @notice `usr` was granted owner access
@@ -103,7 +103,7 @@ contract StarGuard {
      */
     event Exec(address indexed addr);
 
-    // ---------- Modifiers ----------
+    // --- modifiers ---
 
     /**
      * @notice Check if sender is authorized
@@ -113,17 +113,16 @@ contract StarGuard {
         _;
     }
 
-    // ---------- Constructor ----------
+    // --- constructor ---
 
-    constructor(address subProxy_, uint256 expiration_) {
+    constructor(address subProxy_) {
         subProxy = SubProxyLike(subProxy_);
-        expiration = expiration_;
 
         wards[msg.sender] = 1;
         emit Rely(msg.sender);
     }
 
-    // ---------- Administration ----------
+    // --- administration ---
 
     /**
      * @notice Grants `usr` admin access to this contract
@@ -157,7 +156,7 @@ contract StarGuard {
         emit File(what, data);
     }
 
-    // ---------- Operations ----------
+    // --- operations ---
 
     /**
      * @notice "Whitelists" the payload for the future execution

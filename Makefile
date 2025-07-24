@@ -3,7 +3,7 @@
 default: test lint spec
 
 test:
-	forge test
+	forge test -vvv
 
 lint:
 	forge fmt

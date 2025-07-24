@@ -31,13 +31,14 @@ contract StarGuardTest is DssTest {
     address internal subProxy;
     address internal starSpell;
 
-    uint256 internal constant expiration = 24 hours;
     address internal constant unauthedUser = address(0xB0B);
 
     function setUp() public {
+        // Deploy required contracts
         subProxy = address(new SubProxy());
         starSpell = address(new StandardStarSpell());
-        starGuard = new StarGuard(subProxy, expiration);
+        starGuard = new StarGuard(subProxy);
+
         // SubProxy is expected to authorize StarGuard
         SubProxy(subProxy).rely(address(starGuard));
     }
@@ -46,7 +47,7 @@ contract StarGuardTest is DssTest {
         vm.recordLogs();
 
         // Deploy contract
-        StarGuard newStarGuard = new StarGuard(subProxy, expiration);
+        StarGuard newStarGuard = new StarGuard(subProxy);
 
         // Check emitted log
         Vm.Log[] memory entries = vm.getRecordedLogs();
@@ -57,7 +58,6 @@ contract StarGuardTest is DssTest {
         // Check constructor effects
         assertEq(newStarGuard.wards(address(this)), 1);
         assertEq(address(newStarGuard.subProxy()), subProxy);
-        assertEq(newStarGuard.expiration(), expiration);
     }
 
     function testFile() public {

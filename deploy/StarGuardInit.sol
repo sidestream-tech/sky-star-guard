@@ -1,0 +1,58 @@
+// SPDX-FileCopyrightText: © 2025 Dai Foundation <www.daifoundation.org>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+pragma solidity ^0.8.21;
+
+import {DssInstance} from "dss-test/MCD.sol";
+
+interface StarGuardLike {
+    function file(bytes32 what, uint256 data) external;
+    function subProxy() external view returns (address subProxy);
+    function wards(address usr) external view returns (uint256 allowed);
+}
+
+interface SubProxyLike {
+    function rely(address usr) external;
+}
+
+struct StarGuardConfig {
+    address subProxy;
+    bytes32 subProxyKey;
+    address starGuard;
+    bytes32 starGuardKey;
+    uint256 expiration;
+}
+
+library StarGuardInit {
+    function init(
+        DssInstance     memory dss,
+        StarGuardConfig memory cfg
+    ) internal {
+        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
+
+        require(StarGuardLike(cfg.starGuard).wards(pauseProxy) == 1, "StarGuardInit/pauseProxy-not-authorized");
+        require(StarGuardLike(cfg.starGuard).subProxy() == address(cfg.subProxy), "StarGuardInit/subProxy-does-not-match");
+        require(cfg.expiration > 0, "StarGuardInit/invalid-expiration");
+
+        StarGuardLike(cfg.starGuard).file("expiration", cfg.expiration);
+        SubProxyLike(cfg.subProxy).rely(cfg.starGuard);
+
+        if (uint256(cfg.subProxyKey) > 0) {
+            dss.chainlog.setAddress(cfg.subProxyKey, cfg.subProxy);
+        }
+        dss.chainlog.setAddress(cfg.starGuardKey, cfg.starGuard);
+    }
+}
