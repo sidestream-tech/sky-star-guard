@@ -65,7 +65,7 @@ contract StarGuardInitTest is DssTest {
         address subProxy = 0x3300f198988e4C9C63F75dF86De36421f06af8c4;
         address starSpell = 0xC40611AC4Fff8572Dc5F02A238176edCF15Ea7ba;
         // Roll to the block where starSpell exists and hasn't been called yet
-        vm.rollFork(22447231); 
+        vm.rollFork(22447231);
 
         _initAndExecute(
             StarGuardConfig({
@@ -98,4 +98,3 @@ contract StarGuardInitTest is DssTest {
         );
     }
 }
-
