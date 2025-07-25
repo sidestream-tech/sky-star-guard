@@ -163,7 +163,7 @@ contract StarGuard {
      * @param addr_ The Star payload to be whitelisted
      * @param tag_ The keccak hash of the bytecode
      */
-    function plot(address addr_, bytes32 tag_) public auth {
+    function plot(address addr_, bytes32 tag_) external auth {
         spellData.addr = addr_;
         spellData.tag = tag_;
         spellData.pat = block.timestamp;
@@ -182,7 +182,7 @@ contract StarGuard {
     /**
      * @notice Removes the payload from the "whitelist"
      */
-    function drop() public auth {
+    function drop() external auth {
         emit Drop(spellData.addr);
         _drop();
     }
@@ -190,7 +190,7 @@ contract StarGuard {
     /**
      * @notice Executes previously scheduled payload
      */
-    function exec() public {
+    function exec() external {
         SpellData memory spellDataCopy = spellData;
         _drop();
 
