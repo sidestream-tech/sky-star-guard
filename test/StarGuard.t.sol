@@ -23,6 +23,7 @@ import {SubProxy} from "endgame-toolkit/src/SubProxy.sol";
 import {StarGuard} from "../src/StarGuard.sol";
 import {StandardStarSpell} from "./mocks/StandardStarSpell.sol";
 import {MaliciousStarSpell} from "./mocks/MaliciousStarSpell.sol";
+import {DelayedStarSpell} from "./mocks/DelayedStarSpell.sol";
 
 contract StarGuardTest is DssTest {
     using stdStorage for StdStorage;
@@ -160,6 +161,25 @@ contract StarGuardTest is DssTest {
         assertFalse(starGuard.prob());
         vm.prank(unauthedUser);
         vm.expectRevert("StarGuard/expired-spell");
+        starGuard.exec();
+    }
+
+    function testExecDelayedSpell() public {
+        address delayedStarSpell = address(new DelayedStarSpell());
+        starGuard.plot(delayedStarSpell, delayedStarSpell.codehash);
+        // as expected, not executable directly
+        assertFalse(DelayedStarSpell(delayedStarSpell).isExecutable());
+        assertFalse(starGuard.prob());
+        vm.expectRevert("StarGuard/not-yet-executable");
+        starGuard.exec();
+        // warp to the desired timestamp
+        vm.warp(2000000000);
+        // increase expiration
+        starGuard.file("expiration", type(uint160).max);
+        // execute
+        assertTrue(DelayedStarSpell(delayedStarSpell).isExecutable());
+        assertTrue(starGuard.prob());
+        vm.prank(unauthedUser);
         starGuard.exec();
     }
 
