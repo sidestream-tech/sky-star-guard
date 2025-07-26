@@ -63,9 +63,6 @@ contract StarGuardInitTest is DssTest {
     function testSparkInit() public {
         // Spark Proxy can be found here https://github.com/marsfoundation/sparklend-deployments/blob/bba4c57d54deb6a14490b897c12a949aa035a99b/script/output/1/primary-sce-latest.json#L2
         address subProxy = 0x3300f198988e4C9C63F75dF86De36421f06af8c4;
-        address starSpell = 0xC40611AC4Fff8572Dc5F02A238176edCF15Ea7ba;
-        // Roll to the block where starSpell exists and hasn't been called yet
-        vm.rollFork(22447231);
 
         _initAndExecute(
             StarGuardConfig({
@@ -75,16 +72,13 @@ contract StarGuardInitTest is DssTest {
                 starGuardKey: "SPARK_STAR_GUARD",
                 expiration: 24 hours
             }),
-            starSpell
+            address(new StandardStarSpell())
         );
     }
 
     function testGroveInit() public {
         // Grove Proxy can be found at https://forum.sky.money/t/technical-scope-of-the-star-2-allocator-launch/26190
         address subProxy = 0x1369f7b2b38c76B6478c0f0E66D94923421891Ba;
-        address starSpell = 0x0c9CC5D5fF3baf096d29676039BD6fB94586111A;
-        // Roll to the block where starSpell exists and hasn't been called yet
-        vm.rollFork(22319971);
 
         _initAndExecute(
             StarGuardConfig({
@@ -94,7 +88,7 @@ contract StarGuardInitTest is DssTest {
                 starGuardKey: "GROVE_STAR_GUARD",
                 expiration: 24 hours
             }),
-            starSpell
+            address(new StandardStarSpell())
         );
     }
 }

@@ -118,6 +118,7 @@ contract StarGuardTest is DssTest {
 
     function testExec() public {
         starGuard.plot(starSpell, starSpell.codehash);
+        assertTrue(starGuard.prob());
         vm.prank(unauthedUser);
         starGuard.exec();
     }
@@ -138,6 +139,7 @@ contract StarGuardTest is DssTest {
     }
 
     function testExecUnplotted() public {
+        assertFalse(starGuard.prob());
         vm.prank(unauthedUser);
         vm.expectRevert("StarGuard/unplotted-spell");
         starGuard.exec();
@@ -145,6 +147,7 @@ contract StarGuardTest is DssTest {
 
     function testExecWrongCodehash() public {
         starGuard.plot(starSpell, bytes32("irrelevant codehash"));
+        assertFalse(starGuard.prob());
         vm.prank(unauthedUser);
         vm.expectRevert("StarGuard/wrong-codehash");
         starGuard.exec();
@@ -152,7 +155,9 @@ contract StarGuardTest is DssTest {
 
     function testExecExpiredSpell() public {
         starGuard.plot(starSpell, starSpell.codehash);
+        assertTrue(starGuard.prob());
         vm.warp(block.timestamp + starGuard.expiration() + 1);
+        assertFalse(starGuard.prob());
         vm.prank(unauthedUser);
         vm.expectRevert("StarGuard/expired-spell");
         starGuard.exec();

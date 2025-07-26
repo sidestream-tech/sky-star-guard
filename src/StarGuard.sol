@@ -32,6 +32,15 @@ interface SubProxyLike {
     function wards(address usr) external view returns (uint256 allowed);
 }
 
+interface StarSpellLike {
+    /**
+     * @notice Checks if the star payload is executable in the current block
+     * @dev Useful for implementing custom "office hours" logic or specific launch dates
+     * @return result The result of the check (true = yes, false = no)
+     */
+    function isExecutable() external view returns (bool result);
+}
+
 contract StarGuard {
     // --- storage variables ---
 
@@ -188,6 +197,18 @@ contract StarGuard {
     }
 
     /**
+     * @notice Checks if the plotted payload is executable in the current block
+     */
+    function prob() external view returns (bool) {
+        return (
+            spellData.tag != bytes32(0) &&
+            spellData.tag == spellData.addr.codehash &&
+            block.timestamp <= spellData.pat + expiration &&
+            StarSpellLike(spellData.addr).isExecutable() == true
+        );
+    }
+
+    /**
      * @notice Executes previously scheduled payload
      */
     function exec() external {
@@ -197,6 +218,7 @@ contract StarGuard {
         require(spellDataCopy.tag != bytes32(0), "StarGuard/unplotted-spell");
         require(spellDataCopy.tag == spellDataCopy.addr.codehash, "StarGuard/wrong-codehash");
         require(block.timestamp <= spellDataCopy.pat + expiration, "StarGuard/expired-spell");
+        require(StarSpellLike(spellDataCopy.addr).isExecutable() == true, "StarGuard/not-yet-executable");
 
         subProxy.exec(spellDataCopy.addr, abi.encodeWithSignature("execute()"));
 
