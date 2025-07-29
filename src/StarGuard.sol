@@ -198,6 +198,7 @@ contract StarGuard {
 
     /**
      * @notice Checks if the plotted payload is executable in the current block
+     * @return result The result of the check (true = executable, false = reverts)
      */
     function prob() external view returns (bool) {
         return (
