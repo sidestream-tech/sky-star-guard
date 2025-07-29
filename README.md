@@ -22,6 +22,11 @@ with the updated flow:
 3nd transaction: Anyone ──────────────────► StarGuard B ──executes──► Star Spell B1
 ```
 
+## Trust assumptions
+
+- The governance (any address added to `wards`) all considered fully trusted actors
+- The security of the `subProxy` contract and any assets it controls fully dependends on the correctness of the executed star spell's code
+
 ## Features
 
 - Codehash validation of the code, at the time of the execution
