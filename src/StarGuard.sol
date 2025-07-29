@@ -201,10 +201,8 @@ contract StarGuard {
      */
     function prob() external view returns (bool) {
         return (
-            spellData.tag != bytes32(0) &&
-            spellData.tag == spellData.addr.codehash &&
-            block.timestamp <= spellData.pat + expiration &&
-            StarSpellLike(spellData.addr).isExecutable() == true
+            spellData.tag != bytes32(0) && spellData.tag == spellData.addr.codehash
+                && block.timestamp <= spellData.pat + expiration && StarSpellLike(spellData.addr).isExecutable() == true
         );
     }
 

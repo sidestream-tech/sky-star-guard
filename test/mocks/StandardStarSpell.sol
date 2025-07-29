@@ -17,6 +17,9 @@
 pragma solidity ^0.8.21;
 
 contract StandardStarSpell {
-    function isExecutable() external pure returns (bool) { return true; }
+    function isExecutable() external pure returns (bool) {
+        return true;
+    }
+
     function execute() external {}
 }

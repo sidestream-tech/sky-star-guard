@@ -17,7 +17,10 @@
 pragma solidity ^0.8.21;
 
 contract MaliciousStarSpell {
-    function isExecutable() external pure returns (bool) { return true; }
+    function isExecutable() external pure returns (bool) {
+        return true;
+    }
+
     function execute() external {
         assembly {
             // get free memory pointer
