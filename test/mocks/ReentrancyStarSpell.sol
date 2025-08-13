@@ -22,6 +22,7 @@ interface StarGuardLike {
 
 contract ReentrancyStarSpell {
     address internal immutable starGuard;
+
     event ReentrancySucceeded();
 
     constructor(address starGuard_) {
