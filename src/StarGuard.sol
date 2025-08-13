@@ -202,7 +202,7 @@ contract StarGuard {
      */
     function prob() external view returns (bool) {
         return (
-            spellData.tag != bytes32(0) && spellData.tag == spellData.addr.codehash
+            spellData.addr != address(0) && spellData.tag == spellData.addr.codehash
                 && block.timestamp <= spellData.pat + expiration && StarSpellLike(spellData.addr).isExecutable() == true
         );
     }
@@ -212,13 +212,12 @@ contract StarGuard {
      */
     function exec() external {
         SpellData memory spellDataCopy = spellData;
-        _drop();
-
-        require(spellDataCopy.tag != bytes32(0), "StarGuard/unplotted-spell");
+        require(spellDataCopy.addr != address(0), "StarGuard/unplotted-spell");
         require(spellDataCopy.tag == spellDataCopy.addr.codehash, "StarGuard/wrong-codehash");
         require(block.timestamp <= spellDataCopy.pat + expiration, "StarGuard/expired-spell");
         require(StarSpellLike(spellDataCopy.addr).isExecutable() == true, "StarGuard/not-yet-executable");
 
+        _drop();
         subProxy.exec(spellDataCopy.addr, abi.encodeWithSignature("execute()"));
 
         require(subProxy.wards(address(this)) == 1, "StarGuard/subProxy-owner-change");

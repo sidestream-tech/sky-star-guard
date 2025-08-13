@@ -22,8 +22,9 @@ import {DssTest} from "dss-test/DssTest.sol";
 import {SubProxy} from "endgame-toolkit/src/SubProxy.sol";
 import {StarGuard} from "../src/StarGuard.sol";
 import {StandardStarSpell} from "./mocks/StandardStarSpell.sol";
-import {MaliciousStarSpell} from "./mocks/MaliciousStarSpell.sol";
 import {DelayedStarSpell} from "./mocks/DelayedStarSpell.sol";
+import {MaliciousStarSpell} from "./mocks/MaliciousStarSpell.sol";
+import {ReentrancyStarSpell} from "./mocks/ReentrancyStarSpell.sol";
 
 contract StarGuardTest is DssTest {
     using stdStorage for StdStorage;
@@ -186,13 +187,22 @@ contract StarGuardTest is DssTest {
     }
 
     function testExecOwnerChange() public {
-        // deploy malicious spell
+        // deploy and plot malicious spell
         address maliciousStarSpell = address(new MaliciousStarSpell(address(starGuard)));
-        // plot malicious spell
         starGuard.plot(maliciousStarSpell, maliciousStarSpell.codehash);
-        // try to execute
+        // execution should fail
         vm.prank(unauthedUser);
         vm.expectRevert("StarGuard/subProxy-owner-change");
+        starGuard.exec();
+    }
+
+    function testPreventReentrancy() public {
+        // deploy and plot reentrancy spell
+        address reentrancyStarSpell = address(new ReentrancyStarSpell(address(starGuard)));
+        starGuard.plot(reentrancyStarSpell, reentrancyStarSpell.codehash);
+        // execution should fail
+        vm.prank(unauthedUser);
+        vm.expectRevert("SubProxy/delegatecall-error");
         starGuard.exec();
     }
 }
