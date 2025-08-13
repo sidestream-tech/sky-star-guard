@@ -185,21 +185,13 @@ contract StarGuardTest is DssTest {
     }
 
     function testExecOwnerChange() public {
-        // deploy StarGuard to a pre-defined address
-        StarGuard starGuardAtKnownAddress = StarGuard(address(0xBEEF));
-        // set code
-        vm.etch(address(starGuardAtKnownAddress), address(starGuard).code);
-        // authorize the deployer on the new StarGuard
-        stdstore.target(address(starGuardAtKnownAddress)).sig("wards(address)").with_key(address(this)).checked_write(1);
-        // SubProxy is expected to authorize StarGuard
-        SubProxy(subProxy).rely(address(starGuardAtKnownAddress));
         // deploy malicious spell
-        address maliciousStarSpell = address(new MaliciousStarSpell());
+        address maliciousStarSpell = address(new MaliciousStarSpell(address(starGuard)));
         // plot malicious spell
-        starGuardAtKnownAddress.plot(maliciousStarSpell, maliciousStarSpell.codehash);
+        starGuard.plot(maliciousStarSpell, maliciousStarSpell.codehash);
         // try to execute
         vm.prank(unauthedUser);
         vm.expectRevert("StarGuard/subProxy-owner-change");
-        starGuardAtKnownAddress.exec();
+        starGuard.exec();
     }
 }

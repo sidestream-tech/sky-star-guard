@@ -17,16 +17,23 @@
 pragma solidity ^0.8.21;
 
 contract MaliciousStarSpell {
+    address immutable starGuard;
+
+    constructor(address starGuard_) {
+        starGuard = starGuard_;
+    }
+
     function isExecutable() external pure returns (bool) {
         return true;
     }
 
     function execute() external {
+        address _starGuard = starGuard;
         assembly {
             // get free memory pointer
             let ptr := mload(64)
             // store starGuard address in the first 32 bytes
-            mstore(ptr, 0xBEEF)
+            mstore(ptr, _starGuard)
             // store slot index at the next 32 bytes
             mstore(add(ptr, 32), 0)
             // set 0 at the wards[starGuard] slot
