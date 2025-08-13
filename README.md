@@ -39,6 +39,22 @@ with the updated flow:
 
 ## Testing and linting
 
-- To test, provide required env variables, then use `make test`
-- To lint, use `make lint`
+#### Testing
+
+- Provide required env variable outlined above
+- Execute `make test`
+
+#### Linting
+- To lint solidity, execute `make lint`
 - To verify [solidity natspec](https://docs.soliditylang.org/en/latest/natspec-format.html), use `make lint-spec`
+
+### Deployment
+
+To deploy the contract, you can use `Deploy.s.sol` script and only provide the `subProxy` address as a parameter to this script. Here are the example commands:
+
+```sh
+# To estimate gas for the script
+forge script script/Deploy.s.sol:Deploy --fork-url mainnet --sig 'run(address)' 0x...
+# To broadcast live and verify contract on etherscan
+forge script script/Deploy.s.sol:Deploy --fork-url mainnet --sig 'run(address)' 0x... --broadcast --verify --account $KEYSTORE_NAME
+```

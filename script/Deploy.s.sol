@@ -19,15 +19,15 @@ pragma solidity ^0.8.21;
 import {Script, console} from "forge-std/Script.sol";
 import {StarGuard} from "../src/StarGuard.sol";
 
-contract StarGuardScript is Script {
+contract Deploy is Script {
     StarGuard starGuard;
 
     function setUp() public {}
 
-    function run() public {
+    function run(address subProxy) public {
         vm.startBroadcast();
 
-        starGuard = new StarGuard(address(0));
+        starGuard = new StarGuard(subProxy);
 
         vm.stopBroadcast();
     }
