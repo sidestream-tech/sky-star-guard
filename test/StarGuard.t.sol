@@ -128,9 +128,9 @@ contract StarGuardTest is DssTest {
         // plot empty address
         address addressForTheNewSpell = address(0xC0FFEE);
         starGuard.plot(addressForTheNewSpell, starSpell.codehash);
-        // try to execute empty address
+        // try to execute address without a payload deployed there
         vm.prank(unauthedUser);
-        vm.expectRevert();
+        vm.expectRevert("StarGuard/wrong-codehash");
         starGuard.exec();
         // deploy spell into the address
         vm.etch(addressForTheNewSpell, starSpell.code);
@@ -165,17 +165,18 @@ contract StarGuardTest is DssTest {
     }
 
     function testExecDelayedSpell() public {
+        // set maximum expiration to avoid conflicts with tested functionality
+        starGuard.file("expiration", type(uint160).max);
+        // deploy and plot "delayed" spell
         address delayedStarSpell = address(new DelayedStarSpell());
         starGuard.plot(delayedStarSpell, delayedStarSpell.codehash);
-        // as expected, not executable directly
+        // as expected, "delayed" spell is not directly executable
         assertFalse(DelayedStarSpell(delayedStarSpell).isExecutable());
         assertFalse(starGuard.prob());
         vm.expectRevert("StarGuard/not-yet-executable");
         starGuard.exec();
-        // warp to the desired timestamp
+        // warp to the timestamp hardcoded in the "delayed" spell
         vm.warp(2000000000);
-        // increase expiration
-        starGuard.file("expiration", type(uint160).max);
         // execute
         assertTrue(DelayedStarSpell(delayedStarSpell).isExecutable());
         assertTrue(starGuard.prob());

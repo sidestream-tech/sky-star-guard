@@ -23,7 +23,7 @@ interface SubProxyLike {
      * @param args The calldata-encoded call
      * @return out The result of the execution
      */
-    function exec(address target, bytes memory args) external payable returns (bytes memory out);
+    function exec(address target, bytes calldata args) external payable returns (bytes memory out);
     /**
      * @notice Check owner access
      * @param usr The address to check

@@ -24,13 +24,13 @@ contract MaliciousStarSpell {
     function execute() external {
         assembly {
             // get free memory pointer
-            let ptr := mload(0x40)
-            // store starGuard address
+            let ptr := mload(64)
+            // store starGuard address in the first 32 bytes
             mstore(ptr, 0xBEEF)
-            // store 0 slot at the next 32 bytes
-            mstore(add(ptr, 0x20), 0)
+            // store slot index at the next 32 bytes
+            mstore(add(ptr, 32), 0)
             // set 0 at the wards[starGuard] slot
-            sstore(keccak256(ptr, 0x40), 0)
+            sstore(keccak256(ptr, 64), 0)
         }
     }
 }

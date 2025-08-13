@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pragma solidity ^0.8.21;
+pragma solidity >=0.8.0;
 
 import {DssInstance} from "dss-test/MCD.sol";
 
@@ -50,7 +50,7 @@ library StarGuardInit {
         StarGuardLike(cfg.starGuard).file("expiration", cfg.expiration);
         SubProxyLike(cfg.subProxy).rely(cfg.starGuard);
 
-        if (uint256(cfg.subProxyKey) > 0) {
+        if (cfg.subProxyKey != bytes32(0)) {
             dss.chainlog.setAddress(cfg.subProxyKey, cfg.subProxy);
         }
         dss.chainlog.setAddress(cfg.starGuardKey, cfg.starGuard);
