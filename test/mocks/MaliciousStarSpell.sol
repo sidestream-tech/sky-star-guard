@@ -17,7 +17,7 @@
 pragma solidity ^0.8.21;
 
 contract MaliciousStarSpell {
-    address immutable starGuard;
+    address internal immutable starGuard;
 
     constructor(address starGuard_) {
         starGuard = starGuard_;

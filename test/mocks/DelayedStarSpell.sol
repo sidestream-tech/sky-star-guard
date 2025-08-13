@@ -17,10 +17,14 @@
 pragma solidity ^0.8.21;
 
 contract DelayedStarSpell {
-    uint256 public constant EXECUTABLE_AT = 2000000000; // 18 May 2033
+    uint256 internal immutable executableAt;
+
+    constructor(uint256 executableAt_) {
+        executableAt = executableAt_;
+    }
 
     function isExecutable() external view returns (bool) {
-        return block.timestamp >= EXECUTABLE_AT;
+        return block.timestamp >= executableAt;
     }
 
     function execute() external {}

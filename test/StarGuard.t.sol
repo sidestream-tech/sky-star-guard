@@ -165,19 +165,20 @@ contract StarGuardTest is DssTest {
     }
 
     function testExecDelayedSpell() public {
+        uint256 executableAt = block.timestamp + 30 days;
         // set maximum expiration to avoid conflicts with tested functionality
         starGuard.file("expiration", type(uint160).max);
         // deploy and plot "delayed" spell
-        address delayedStarSpell = address(new DelayedStarSpell());
+        address delayedStarSpell = address(new DelayedStarSpell(executableAt));
         starGuard.plot(delayedStarSpell, delayedStarSpell.codehash);
-        // as expected, "delayed" spell is not directly executable
+        // "delayed" spell is not executable before executableAt
+        vm.warp(executableAt - 1);
         assertFalse(DelayedStarSpell(delayedStarSpell).isExecutable());
         assertFalse(starGuard.prob());
         vm.expectRevert("StarGuard/not-yet-executable");
         starGuard.exec();
-        // warp to the timestamp hardcoded in the "delayed" spell
-        vm.warp(2000000000);
-        // execute
+        // "delayed" spell is executable at executableAt or after
+        vm.warp(executableAt);
         assertTrue(DelayedStarSpell(delayedStarSpell).isExecutable());
         assertTrue(starGuard.prob());
         vm.prank(unauthedUser);
