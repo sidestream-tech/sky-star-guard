@@ -41,7 +41,7 @@ contract StarGuardInitTest is DssTest {
 
     function _initAndExecute(StarGuardConfig memory cfg, address starSpell) private {
         // Check values before init call
-        assertEq(StarGuard(cfg.starGuard).expiration(), 0);
+        assertEq(StarGuard(cfg.starGuard).maxDelay(), 0);
         assertEq(SubProxy(cfg.subProxy).wards(cfg.starGuard), 0);
 
         // Execute StarGuardInit.init
@@ -50,7 +50,7 @@ contract StarGuardInitTest is DssTest {
         vm.stopPrank();
 
         // Check effects of the init call
-        assertEq(StarGuard(cfg.starGuard).expiration(), cfg.expiration);
+        assertEq(StarGuard(cfg.starGuard).maxDelay(), cfg.maxDelay);
         assertEq(SubProxy(cfg.subProxy).wards(cfg.starGuard), 1);
 
         // Plot and execute actual spells
@@ -70,7 +70,7 @@ contract StarGuardInitTest is DssTest {
                 subProxyKey: "SPARK_STAR_PROXY",
                 starGuard: _deployStarGuard(subProxy),
                 starGuardKey: "SPARK_STAR_GUARD",
-                expiration: 24 hours
+                maxDelay: 24 hours
             }),
             address(new StandardStarSpell())
         );
@@ -86,7 +86,7 @@ contract StarGuardInitTest is DssTest {
                 subProxyKey: "GROVE_STAR_PROXY",
                 starGuard: _deployStarGuard(subProxy),
                 starGuardKey: "GROVE_STAR_GUARD",
-                expiration: 24 hours
+                maxDelay: 24 hours
             }),
             address(new StandardStarSpell())
         );

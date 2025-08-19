@@ -30,7 +30,7 @@ with the updated flow:
 ## Features
 
 - Codehash validation of the code at the time of the execution
-- Configurable Star spell expiration deadline, after which the spell can no longer be executed
+- Configurable maximum delay – a deadline, after which the Star spell can no longer be executed
 - Validation that Star spell did not remove StarGuard from the authorized contracts
 
 ### Environment variables
@@ -44,8 +44,8 @@ with the updated flow:
 - Provide required env variable outlined above
 - Execute `make test`
 
-#### Linting
-- To lint solidity, execute `make lint`
+#### Linting and formatting
+- To format solidity code, execute `make format`
 - To verify [solidity natspec](https://docs.soliditylang.org/en/latest/natspec-format.html), use `make lint-spec`
 
 ### Deployment

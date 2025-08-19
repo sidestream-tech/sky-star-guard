@@ -33,7 +33,7 @@ struct StarGuardConfig {
     bytes32 subProxyKey;
     address starGuard;
     bytes32 starGuardKey;
-    uint256 expiration;
+    uint256 maxDelay;
 }
 
 library StarGuardInit {
@@ -45,9 +45,9 @@ library StarGuardInit {
 
         require(StarGuardLike(cfg.starGuard).wards(pauseProxy) == 1, "StarGuardInit/pauseProxy-not-authorized");
         require(StarGuardLike(cfg.starGuard).subProxy() == address(cfg.subProxy), "StarGuardInit/subProxy-does-not-match");
-        require(cfg.expiration > 0, "StarGuardInit/invalid-expiration");
+        require(cfg.maxDelay > 0, "StarGuardInit/invalid-maxDelay");
 
-        StarGuardLike(cfg.starGuard).file("expiration", cfg.expiration);
+        StarGuardLike(cfg.starGuard).file("maxDelay", cfg.maxDelay);
         SubProxyLike(cfg.subProxy).rely(cfg.starGuard);
 
         if (cfg.subProxyKey != bytes32(0)) {

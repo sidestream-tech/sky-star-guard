@@ -5,7 +5,7 @@ default: test lint spec
 test:
 	forge test -vvv
 
-lint:
+format:
 	forge fmt
 
 lint-spec:

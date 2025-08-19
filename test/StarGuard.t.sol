@@ -63,7 +63,7 @@ contract StarGuardTest is DssTest {
     }
 
     function testFile() public {
-        checkFileUint(address(starGuard), "StarGuard", ["expiration"]);
+        checkFileUint(address(starGuard), "StarGuard", ["maxDelay"]);
     }
 
     function testAuth() public {
@@ -158,7 +158,7 @@ contract StarGuardTest is DssTest {
     function testExecExpiredSpell() public {
         starGuard.plot(starSpell, starSpell.codehash);
         assertTrue(starGuard.prob());
-        vm.warp(block.timestamp + starGuard.expiration() + 1);
+        vm.warp(block.timestamp + starGuard.maxDelay() + 1);
         assertFalse(starGuard.prob());
         vm.prank(unauthedUser);
         vm.expectRevert("StarGuard/expired-spell");
@@ -167,8 +167,8 @@ contract StarGuardTest is DssTest {
 
     function testExecDelayedSpell() public {
         uint256 executableAt = block.timestamp + 30 days;
-        // set maximum expiration to avoid conflicts with tested functionality
-        starGuard.file("expiration", type(uint160).max);
+        // set maximum maxDelay to avoid conflicts with tested functionality
+        starGuard.file("maxDelay", type(uint160).max);
         // deploy and plot "delayed" spell
         address delayedStarSpell = address(new DelayedStarSpell(executableAt));
         starGuard.plot(delayedStarSpell, delayedStarSpell.codehash);

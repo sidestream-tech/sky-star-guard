@@ -42,22 +42,6 @@ interface StarSpellLike {
 }
 
 contract StarGuard {
-    // --- storage variables ---
-
-    /// @notice Addresses with owner access on this contract
-    mapping(address usr => uint256 allowed) public wards;
-
-    /// @notice Maximum delay in seconds between whitelisting and execution
-    uint256 public expiration;
-
-    /// @notice "Whitelisted" star payload data
-    SpellData public spellData;
-
-    // --- immutables ---
-
-    /// @notice Star admin contract (instance of `SubProxy`)
-    SubProxyLike public immutable subProxy;
-
     // --- structs ---
 
     /**
@@ -71,6 +55,22 @@ contract StarGuard {
         bytes32 tag;
         uint256 pat;
     }
+
+    // --- storage variables ---
+
+    /// @notice Addresses with owner access on this contract
+    mapping(address usr => uint256 allowed) public wards;
+
+    /// @notice Maximum delay in seconds between whitelisting and execution
+    uint256 public maxDelay;
+
+    /// @notice "Whitelisted" star payload data
+    SpellData public spellData;
+
+    // --- immutables ---
+
+    /// @notice Star admin contract (instance of `SubProxy`)
+    SubProxyLike public immutable subProxy;
 
     // --- events ---
 
@@ -157,8 +157,8 @@ contract StarGuard {
      * @param data New value of the variable
      */
     function file(bytes32 what, uint256 data) external auth {
-        if (what == "expiration") {
-            expiration = data;
+        if (what == "maxDelay") {
+            maxDelay = data;
         } else {
             revert("StarGuard/file-unrecognized-param");
         }
@@ -182,18 +182,9 @@ contract StarGuard {
     /**
      * @notice Removes the payload from the "whitelist"
      */
-    function _drop() private {
-        spellData.addr = address(0);
-        spellData.tag = bytes32(0);
-        spellData.pat = uint256(0);
-    }
-
-    /**
-     * @notice Removes the payload from the "whitelist"
-     */
     function drop() external auth {
         emit Drop(spellData.addr);
-        _drop();
+        delete spellData;
     }
 
     /**
@@ -203,7 +194,7 @@ contract StarGuard {
     function prob() external view returns (bool) {
         return (
             spellData.addr != address(0) && spellData.tag == spellData.addr.codehash
-                && block.timestamp <= spellData.pat + expiration && StarSpellLike(spellData.addr).isExecutable() == true
+                && block.timestamp <= spellData.pat + maxDelay && StarSpellLike(spellData.addr).isExecutable() == true
         );
     }
 
@@ -214,10 +205,10 @@ contract StarGuard {
         SpellData memory spellDataCopy = spellData;
         require(spellDataCopy.addr != address(0), "StarGuard/unplotted-spell");
         require(spellDataCopy.tag == spellDataCopy.addr.codehash, "StarGuard/wrong-codehash");
-        require(block.timestamp <= spellDataCopy.pat + expiration, "StarGuard/expired-spell");
+        require(block.timestamp <= spellDataCopy.pat + maxDelay, "StarGuard/expired-spell");
         require(StarSpellLike(spellDataCopy.addr).isExecutable() == true, "StarGuard/not-yet-executable");
 
-        _drop();
+        delete spellData;
         subProxy.exec(spellDataCopy.addr, abi.encodeWithSignature("execute()"));
 
         require(subProxy.wards(address(this)) == 1, "StarGuard/subProxy-owner-change");
