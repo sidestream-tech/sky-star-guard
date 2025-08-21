@@ -16,7 +16,10 @@
 
 pragma solidity >=0.8.0;
 
-import {DssInstance} from "dss-test/MCD.sol";
+interface ChainLogLike {
+    function getAddress(bytes32 _key) external view returns (address addr);
+    function setAddress(bytes32 _key, address _addr) external;
+}
 
 interface StarGuardLike {
     function file(bytes32 what, uint256 data) external;
@@ -38,10 +41,10 @@ struct StarGuardConfig {
 
 library StarGuardInit {
     function init(
-        DssInstance     memory dss,
+        address chainlog,
         StarGuardConfig memory cfg
     ) internal {
-        address pauseProxy = dss.chainlog.getAddress("MCD_PAUSE_PROXY");
+        address pauseProxy = ChainLogLike(chainlog).getAddress("MCD_PAUSE_PROXY");
 
         require(StarGuardLike(cfg.starGuard).wards(pauseProxy) == 1, "StarGuardInit/pauseProxy-not-authorized");
         require(StarGuardLike(cfg.starGuard).subProxy() == address(cfg.subProxy), "StarGuardInit/subProxy-does-not-match");
@@ -51,8 +54,8 @@ library StarGuardInit {
         SubProxyLike(cfg.subProxy).rely(cfg.starGuard);
 
         if (cfg.subProxyKey != bytes32(0)) {
-            dss.chainlog.setAddress(cfg.subProxyKey, cfg.subProxy);
+            ChainLogLike(chainlog).setAddress(cfg.subProxyKey, cfg.subProxy);
         }
-        dss.chainlog.setAddress(cfg.starGuardKey, cfg.starGuard);
+        ChainLogLike(chainlog).setAddress(cfg.starGuardKey, cfg.starGuard);
     }
 }

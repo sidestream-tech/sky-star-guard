@@ -46,7 +46,7 @@ contract StarGuardInitTest is DssTest {
 
         // Execute StarGuardInit.init
         vm.startPrank(pauseProxy);
-        StarGuardInit.init(dss, cfg);
+        StarGuardInit.init(LOG, cfg);
         vm.stopPrank();
 
         // Check effects of the init call
