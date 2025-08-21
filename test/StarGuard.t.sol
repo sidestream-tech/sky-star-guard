@@ -121,8 +121,16 @@ contract StarGuardTest is DssTest {
     function testExec() public {
         starGuard.plot(starSpell, starSpell.codehash);
         assertTrue(starGuard.prob());
+
+        vm.recordLogs();
         vm.prank(unauthedUser);
-        starGuard.exec();
+        address spell = starGuard.exec();
+        assertEq(spell, starSpell);
+
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        assertEq(entries.length, 1);
+        assertEq(entries[0].topics[0], keccak256("Exec(address)"));
+        assertEq(address(uint160(uint256(entries[0].topics[1]))), starSpell);
     }
 
     function testPlotBeforeDeploy() public {

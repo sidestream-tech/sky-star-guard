@@ -201,7 +201,7 @@ contract StarGuard {
     /**
      * @notice Executes previously scheduled payload
      */
-    function exec() external {
+    function exec() external returns (address addr) {
         SpellData memory spellDataCopy = spellData;
         require(spellDataCopy.addr != address(0), "StarGuard/unplotted-spell");
         require(spellDataCopy.tag == spellDataCopy.addr.codehash, "StarGuard/wrong-codehash");
@@ -213,5 +213,6 @@ contract StarGuard {
 
         require(subProxy.wards(address(this)) == 1, "StarGuard/subProxy-owner-change");
         emit Exec(spellDataCopy.addr);
+        return spellDataCopy.addr;
     }
 }
