@@ -48,12 +48,12 @@ contract StarGuard {
      * @notice Star payload data
      * @param addr The payload address
      * @param tag The keccak hash of the bytecode
-     * @param pat Time when the payload was plotted
+     * @param deadline The timestamp after which the spell is no longer executable
      */
     struct SpellData {
         address addr;
         bytes32 tag;
-        uint256 pat;
+        uint256 deadline;
     }
 
     // --- storage variables ---
@@ -97,8 +97,9 @@ contract StarGuard {
      * @notice A payload has been whitelisted
      * @param addr The payload address
      * @param tag The payload codehash
+     * @param deadline The timestamp after which the spell is no longer executable
      */
-    event Plot(address indexed addr, bytes32 tag);
+    event Plot(address indexed addr, bytes32 tag, uint256 deadline);
 
     /**
      * @notice A previously "whitelisted" payload has been dropped
@@ -175,8 +176,8 @@ contract StarGuard {
     function plot(address addr_, bytes32 tag_) external auth {
         spellData.addr = addr_;
         spellData.tag = tag_;
-        spellData.pat = block.timestamp;
-        emit Plot(addr_, tag_);
+        spellData.deadline = block.timestamp + maxDelay;
+        emit Plot(addr_, tag_, spellData.deadline);
     }
 
     /**
@@ -194,7 +195,7 @@ contract StarGuard {
     function prob() external view returns (bool) {
         return (
             spellData.addr != address(0) && spellData.tag == spellData.addr.codehash
-                && block.timestamp <= spellData.pat + maxDelay && StarSpellLike(spellData.addr).isExecutable() == true
+                && block.timestamp <= spellData.deadline && StarSpellLike(spellData.addr).isExecutable() == true
         );
     }
 
@@ -205,7 +206,7 @@ contract StarGuard {
         SpellData memory spellDataCopy = spellData;
         require(spellDataCopy.addr != address(0), "StarGuard/unplotted-spell");
         require(spellDataCopy.tag == spellDataCopy.addr.codehash, "StarGuard/wrong-codehash");
-        require(block.timestamp <= spellDataCopy.pat + maxDelay, "StarGuard/expired-spell");
+        require(block.timestamp <= spellDataCopy.deadline, "StarGuard/expired-spell");
         require(StarSpellLike(spellDataCopy.addr).isExecutable() == true, "StarGuard/not-yet-executable");
 
         delete spellData;

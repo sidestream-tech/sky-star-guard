@@ -60,6 +60,9 @@ contract StarGuardTest is DssTest {
         // Check constructor effects
         assertEq(newStarGuard.wards(address(this)), 1);
         assertEq(address(newStarGuard.subProxy()), subProxy);
+
+        // Check default values
+        assertEq(newStarGuard.maxDelay(), 0);
     }
 
     function testFile() public {
@@ -84,36 +87,36 @@ contract StarGuardTest is DssTest {
         vm.recordLogs();
         // Check initial state
         {
-            (address addr, bytes32 tag, uint256 pat) = starGuard.spellData();
+            (address addr, bytes32 tag, uint256 deadline) = starGuard.spellData();
             assertEq(addr, address(0));
             assertEq(tag, bytes32(0));
-            assertEq(pat, uint256(0));
+            assertEq(deadline, uint256(0));
         }
 
         // Plot
         starGuard.plot(spell, spellTag);
         {
-            (address addr, bytes32 tag, uint256 pat) = starGuard.spellData();
+            (address addr, bytes32 tag, uint256 deadline) = starGuard.spellData();
             assertEq(addr, spell);
             assertEq(tag, spellTag);
-            assertEq(pat, block.timestamp);
+            assertEq(deadline, block.timestamp + starGuard.maxDelay());
         }
 
         // Drop
         starGuard.drop();
         {
-            (address addr, bytes32 tag, uint256 pat) = starGuard.spellData();
+            (address addr, bytes32 tag, uint256 deadline) = starGuard.spellData();
             assertEq(addr, address(0));
             assertEq(tag, bytes32(0));
-            assertEq(pat, uint256(0));
+            assertEq(deadline, uint256(0));
         }
 
         // Check logs
         Vm.Log[] memory entries = vm.getRecordedLogs();
         assertEq(entries.length, 2);
-        assertEq(entries[0].topics[0], keccak256("Plot(address,bytes32)"));
+        assertEq(entries[0].topics[0], keccak256("Plot(address,bytes32,uint256)"));
         assertEq(address(uint160(uint256(entries[0].topics[1]))), spell);
-        assertEq(bytes32(entries[0].data), spellTag);
+        assertEq(entries[0].data, abi.encodePacked(spellTag, block.timestamp + starGuard.maxDelay()));
         assertEq(entries[1].topics[0], keccak256("Drop(address)"));
         assertEq(address(uint160(uint256(entries[1].topics[1]))), spell);
     }
@@ -171,6 +174,16 @@ contract StarGuardTest is DssTest {
         vm.prank(unauthedUser);
         vm.expectRevert("StarGuard/expired-spell");
         starGuard.exec();
+    }
+
+    function testDeadlineUnchanged() public {
+        starGuard.file("maxDelay", 24 hours);
+        starGuard.plot(starSpell, starSpell.codehash);
+        (,, uint256 deadlineBefore) = starGuard.spellData();
+        assertEq(deadlineBefore, block.timestamp + 24 hours);
+        starGuard.file("maxDelay", 0);
+        (,, uint256 deadlineAfter) = starGuard.spellData();
+        assertEq(deadlineAfter, deadlineBefore);
     }
 
     function testExecDelayedSpell() public {
