@@ -201,6 +201,7 @@ contract StarGuard {
 
     /**
      * @notice Executes previously scheduled payload
+     * @return addr Executed payload address
      */
     function exec() external returns (address addr) {
         SpellData memory spellDataCopy = spellData;
