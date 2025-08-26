@@ -1,6 +1,6 @@
 # StarGuard module
 
-A module for the Sky Protocol that enables permissionless execution of Star Spells in a separate transaction after they were whitelisted by the core spell.
+A module for the Sky Protocol that enables permissionless execution of Star Spells in a separate transaction after they were "whitelisted" by the core spell.
 
 ## Overview
 
@@ -19,7 +19,7 @@ with the updated flow:
 1st transaction: Anyone ──► Core Spell ─┬─► StarGuard A ──whitelists──► SubProxy A ──► Star Spell A1
                                         └─► StarGuard B ──whitelists──► SubProxy B ──► Star Spell B1
 2nd transaction: Anyone ──────────────────► StarGuard A ───executes───► SubProxy A ──► Star Spell A1
-3nd transaction: Anyone ──────────────────► StarGuard B ───executes───► SubProxy B ──► Star Spell B1
+3rd transaction: Anyone ──────────────────► StarGuard B ───executes───► SubProxy B ──► Star Spell B1
 ```
 
 ## Trust assumptions
@@ -29,9 +29,16 @@ with the updated flow:
 
 ## Features
 
-- Codehash validation of the code at the time of the execution
-- Configurable maximum delay – a deadline, after which the Star spell can no longer be executed
+- Codehash validation of the payload at the time of the execution
+- Configurable maximum delay – a deadline, after which the Star payload is no longer executable
 - Validation that Star spell did not remove StarGuard from the authorized contracts
+
+## Payload requirements
+
+Each payload contract is expected to provide certain external interfaces:
+
+- `execute()` – required function to be called by the StarGuard during permissionless execution. Shall contain actions performed on behalf of the `SubProxy` – i.e. the actual payload.
+- `isExecutable()` – required static function that returns `boolean` indicating whether the payload is executable _at the moment_. Is helpful for establishing "earliest launch date" or "office hours" strategy by returning `true` only during specific hours. When `false` is being returned, StarGuard itself ensures that the payload can not be permissionlessly executed.
 
 ### Environment variables
 - `MAINNET_RPC_URL` (required for testing) – the RPC url to the Ethereum Mainnet node
