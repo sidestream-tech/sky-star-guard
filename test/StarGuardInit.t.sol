@@ -39,7 +39,7 @@ contract StarGuardInitTest is DssTest {
         ScriptTools.switchOwner(starGuard, address(this), pauseProxy);
     }
 
-    function _initAndExecute(StarGuardConfig memory cfg, address starSpell) private {
+    function _initPlotAndExecute(StarGuardConfig memory cfg) external {
         // Check values before init call
         assertEq(StarGuard(cfg.starGuard).maxDelay(), 0);
         assertEq(SubProxy(cfg.subProxy).wards(cfg.starGuard), 0);
@@ -53,7 +53,8 @@ contract StarGuardInitTest is DssTest {
         assertEq(StarGuard(cfg.starGuard).maxDelay(), cfg.maxDelay);
         assertEq(SubProxy(cfg.subProxy).wards(cfg.starGuard), 1);
 
-        // Plot and execute actual spells
+        // Plot and execute actual spell
+        address starSpell = address(new StandardStarSpell());
         vm.prank(pauseProxy);
         StarGuard(cfg.starGuard).plot(starSpell, starSpell.codehash);
         vm.warp(block.timestamp + 10 hours);
@@ -64,15 +65,14 @@ contract StarGuardInitTest is DssTest {
         // Spark Proxy can be found here https://github.com/marsfoundation/sparklend-deployments/blob/bba4c57d54deb6a14490b897c12a949aa035a99b/script/output/1/primary-sce-latest.json#L2
         address subProxy = 0x3300f198988e4C9C63F75dF86De36421f06af8c4;
 
-        _initAndExecute(
+        this._initPlotAndExecute(
             StarGuardConfig({
                 subProxy: subProxy,
                 subProxyKey: "SPARK_STAR_PROXY",
                 starGuard: _deployStarGuard(subProxy),
                 starGuardKey: "SPARK_STAR_GUARD",
                 maxDelay: 24 hours
-            }),
-            address(new StandardStarSpell())
+            })
         );
     }
 
@@ -80,15 +80,34 @@ contract StarGuardInitTest is DssTest {
         // Grove Proxy can be found at https://forum.sky.money/t/technical-scope-of-the-star-2-allocator-launch/26190
         address subProxy = 0x1369f7b2b38c76B6478c0f0E66D94923421891Ba;
 
-        _initAndExecute(
+        this._initPlotAndExecute(
             StarGuardConfig({
                 subProxy: subProxy,
                 subProxyKey: "GROVE_STAR_PROXY",
                 starGuard: _deployStarGuard(subProxy),
                 starGuardKey: "GROVE_STAR_GUARD",
                 maxDelay: 24 hours
-            }),
-            address(new StandardStarSpell())
+            })
+        );
+    }
+
+    function testPrePlottedSpell() public {
+        address subProxy = address(new SubProxy());
+        address starGuard = address(new StarGuard(subProxy));
+
+        // Plot a spell before switching ownership
+        StarGuard(starGuard).plot(address(123), keccak256(""));
+        ScriptTools.switchOwner(starGuard, address(this), pauseProxy);
+
+        vm.expectRevert("StarGuardInit/unexpected-plotted-spell");
+        this._initPlotAndExecute(
+            StarGuardConfig({
+                subProxy: subProxy,
+                subProxyKey: "TEST_STAR_PROXY",
+                starGuard: starGuard,
+                starGuardKey: "TEST_STAR_GUARD",
+                maxDelay: 24 hours
+            })
         );
     }
 }

@@ -24,6 +24,7 @@ interface ChainLogLike {
 interface StarGuardLike {
     function file(bytes32 what, uint256 data) external;
     function subProxy() external view returns (address subProxy);
+    function spellData() external view returns (address addr, bytes32 tag, uint256 deadline);
     function wards(address usr) external view returns (uint256 allowed);
 }
 
@@ -49,6 +50,8 @@ library StarGuardInit {
         require(StarGuardLike(cfg.starGuard).wards(pauseProxy) == 1, "StarGuardInit/pauseProxy-not-authorized");
         require(StarGuardLike(cfg.starGuard).subProxy() == address(cfg.subProxy), "StarGuardInit/subProxy-does-not-match");
         require(cfg.maxDelay > 0, "StarGuardInit/invalid-maxDelay");
+        (address addr,,) = StarGuardLike(cfg.starGuard).spellData();
+        require(addr == address(0), "StarGuardInit/unexpected-plotted-spell");
 
         StarGuardLike(cfg.starGuard).file("maxDelay", cfg.maxDelay);
         SubProxyLike(cfg.subProxy).rely(cfg.starGuard);
