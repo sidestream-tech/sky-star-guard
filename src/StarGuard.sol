@@ -34,9 +34,14 @@ interface SubProxyLike {
 
 interface StarSpellLike {
     /**
+     * @notice Executes actions performed on behalf of the `SubProxy` – i.e. the actual payload
+     * @dev Required, will be called by the StarGuard during permissionless execution
+     */
+    function execute() external;
+    /**
      * @notice Checks if the star payload is executable in the current block
-     * @dev Useful for implementing custom "office hours" logic or specific launch dates
-     * @return result The result of the check (true = yes, false = no)
+     * @dev Required, useful for implementing "earliest launch date" or "office hours" strategy
+     * @return result The result of the check (true = executable, false = not)
      */
     function isExecutable() external view returns (bool result);
 }
@@ -211,7 +216,7 @@ contract StarGuard {
         require(StarSpellLike(spellDataCopy.addr).isExecutable(), "StarGuard/not-yet-executable");
 
         delete spellData;
-        subProxy.exec(spellDataCopy.addr, abi.encodeWithSignature("execute()"));
+        subProxy.exec(spellDataCopy.addr, abi.encodePacked(StarSpellLike.execute.selector));
 
         require(subProxy.wards(address(this)) == 1, "StarGuard/subProxy-owner-change");
         emit Exec(spellDataCopy.addr);

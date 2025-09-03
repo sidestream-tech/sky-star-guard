@@ -42,10 +42,23 @@ with the updated flow:
 
 ## Payload requirements
 
-Each payload contract is expected to provide certain external interfaces:
+Each payload contract is required to provide certain external interfaces:
 
-- `execute()` – required function to be called by the StarGuard during permissionless execution. Shall contain actions performed on behalf of the `SubProxy` – i.e. the actual payload.
-- `isExecutable()` – required static function that returns `boolean` indicating whether the payload is executable _at the moment_. Is helpful for establishing "earliest launch date" or "office hours" strategy by returning `true` only during specific hours. When `false` is being returned, StarGuard itself ensures that the payload can not be permissionlessly executed.
+```solidity
+interface StarSpellLike {
+    /**
+     * @notice Executes actions performed on behalf of the `SubProxy` – i.e. the actual payload
+     * @dev Required, will be called by the StarGuard during permissionless execution
+     */
+    function execute() external;
+    /**
+     * @notice Checks if the star payload is executable in the current block
+     * @dev Required, useful for implementing "earliest launch date" or "office hours" strategy
+     * @return result The result of the check (true = executable, false = not)
+     */
+    function isExecutable() external view returns (bool result);
+}
+```
 
 ### Environment variables
 - `MAINNET_RPC_URL` (required for testing) – the RPC url to the Ethereum Mainnet node
