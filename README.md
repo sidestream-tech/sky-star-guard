@@ -24,8 +24,15 @@ with the updated flow:
 
 ## Trust assumptions
 
-- The governance (any address in `wards`) is considered to be fully trusted actor
-- The security of the `SubProxy` contract and any assets it controls fully depends on the correctness of the executed star spell's code
+- The governance (any address in `wards`) is considered to be fully trusted. `StarGuard.wards` is expected to only contain `MCD_PAUSE_PROXY`
+- The `SubProxy` is expected to work correctly. `SubProxy.wards` is expected to contain `StarGuard`
+- The Star spells are fully trusted, expected to be validated accordingly
+    - Additional sanity checks are implemented as a precaution:
+        - `codehash` enforcement at the time of the execution
+        - `exec()` reentrancy protection
+        - `SubProxy.wards` check after payload execution to still contain `StarGuard` (note: it's not technically possible to guarantee that another address was added there which can modify `wards` in the following transaction)
+    - Expected to implement the required functions (i.e., `execute()` and `isExecutable()`)
+- Any other address: Untrusted
 
 ## Features
 
