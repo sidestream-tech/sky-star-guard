@@ -77,11 +77,11 @@ interface StarSpellLike {
 
 ### Deployment
 
-To deploy the contract, you can use `Deploy.s.sol` script and only provide the `subProxy` address as a parameter to this script. Here are the example commands:
+To deploy the contract, you can use `Deploy.s.sol` script, set `PRIVATE_KEY` env variable, then provide the `subProxy` address as a parameter to this script. Here are the example commands:
 
 ```sh
 # To estimate gas for the script
-forge script script/Deploy.s.sol:Deploy --fork-url mainnet --sig 'run(address)' 0x...
+forge script script/Deploy.s.sol:Deploy --rpc-url mainnet --sig 'run(address)' 0x...
 # To broadcast live and verify contract on etherscan
-forge script script/Deploy.s.sol:Deploy --fork-url mainnet --sig 'run(address)' 0x... --broadcast --verify --account $KEYSTORE_NAME
+forge script script/Deploy.s.sol:Deploy --rpc-url mainnet --sig 'run(address)' 0x... --broadcast --verify
 ```

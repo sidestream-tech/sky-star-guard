@@ -16,18 +16,26 @@
 
 pragma solidity ^0.8.24;
 
-import {Script, console} from "forge-std/Script.sol";
+import {Script} from "forge-std/Script.sol";
+import {ScriptTools} from "dss-test/ScriptTools.sol";
 import {StarGuard} from "../src/StarGuard.sol";
 
-contract Deploy is Script {
-    StarGuard starGuard;
+interface ChainlogLike {
+    function getAddress(bytes32 _key) external view returns (address addr);
+}
 
-    function setUp() public {}
+contract Deploy is Script {
+    ChainlogLike internal constant chainlog = ChainlogLike(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
 
     function run(address subProxy) public {
-        vm.startBroadcast();
+        uint256 privateKey = vm.envUint("PRIVATE_KEY");
+        address deployer = vm.addr(privateKey);
+        address pauseProxy = chainlog.getAddress("MCD_PAUSE_PROXY");
 
-        starGuard = new StarGuard(subProxy);
+        vm.startBroadcast(privateKey);
+
+        address starGuard = address(new StarGuard(subProxy));
+        ScriptTools.switchOwner(starGuard, deployer, pauseProxy);
 
         vm.stopBroadcast();
     }
