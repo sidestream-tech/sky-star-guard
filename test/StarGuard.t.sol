@@ -84,6 +84,8 @@ contract StarGuardTest is DssTest {
     }
 
     function testPlotAndDrop(address spell, bytes32 spellTag) public {
+        vm.assume(spell != address(0)); // this case is tested separately in testPlotZeroAddress
+
         vm.recordLogs();
         // Check initial state
         {
@@ -134,6 +136,37 @@ contract StarGuardTest is DssTest {
         assertEq(entries.length, 1);
         assertEq(entries[0].topics[0], keccak256("Exec(address)"));
         assertEq(address(uint160(uint256(entries[0].topics[1]))), starSpell);
+    }
+
+    function testPlotZeroAddress() public {
+        vm.expectRevert("StarGuard/zero-spell-address");
+        starGuard.plot(address(0), address(0).codehash);
+    }
+
+    function testDropZeroAddress() public {
+        vm.recordLogs();
+        starGuard.drop();
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        assertEq(entries.length, 0);
+    }
+
+    function testPlotOverNotYetExecuted() public {
+        // Plot the first spell
+        starGuard.plot(starSpell, starSpell.codehash);
+
+        // Plot the second spell over the first one
+        assertTrue(starGuard.prob());
+        vm.recordLogs();
+        address secondStarSpell = address(new StandardStarSpell());
+        starGuard.plot(secondStarSpell, secondStarSpell.codehash);
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+
+        // Check that Drop was emitted
+        assertEq(entries.length, 2);
+        assertEq(entries[0].topics[0], keccak256("Drop(address)"));
+        assertEq(address(uint160(uint256(entries[0].topics[1]))), starSpell);
+        assertEq(entries[1].topics[0], keccak256("Plot(address,bytes32,uint256)"));
+        assertEq(address(uint160(uint256(entries[1].topics[1]))), secondStarSpell);
     }
 
     function testPlotBeforeDeploy() public {
