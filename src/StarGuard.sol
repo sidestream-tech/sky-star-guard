@@ -179,6 +179,8 @@ contract StarGuard {
      * @param tag_ The keccak hash of the bytecode
      */
     function plot(address addr_, bytes32 tag_) external auth {
+        require(addr_ != address(0), "StarGuard/zero-spell-address");
+        if (spellData.addr != address(0)) emit Drop(spellData.addr);
         spellData.addr = addr_;
         spellData.tag = tag_;
         spellData.deadline = block.timestamp + maxDelay;
@@ -189,6 +191,7 @@ contract StarGuard {
      * @notice Removes the payload from the "whitelist"
      */
     function drop() external auth {
+        if (spellData.addr == address(0)) return;
         emit Drop(spellData.addr);
         delete spellData;
     }
