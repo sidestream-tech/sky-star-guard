@@ -9,17 +9,17 @@ The StarGuard module resolves multiple problems with direct inclusion of the Sta
 In other words, it replaces current flow:
 
 ```
-1st transaction: Anyone ──► Core Spell ─┬─► SubProxy A ──executes──► Star Spell A1
-                                        └─► SubProxy B ──executes──► Star Spell B1
+1st transaction: Anyone ──► Core Spell ─┬─► SubProxy A ──► Star Spell A1
+                                        └─► SubProxy B ──► Star Spell B1
 ```
 
 with the updated flow:
 
 ```
-1st transaction: Anyone ──► Core Spell ─┬─► StarGuard A ──whitelists──► SubProxy A ──► Star Spell A1
-                                        └─► StarGuard B ──whitelists──► SubProxy B ──► Star Spell B1
-2nd transaction: Anyone ──────────────────► StarGuard A ───executes───► SubProxy A ──► Star Spell A1
-3rd transaction: Anyone ──────────────────► StarGuard B ───executes───► SubProxy B ──► Star Spell B1
+1st transaction: Anyone ──► Core Spell ─┬─► StarGuard A.plot(Star Spell A1)
+                                        └─► StarGuard B.plot(Star Spell B1)
+2nd transaction: Anyone ──────────────────► StarGuard A.exec() ──► SubProxy A ──► Star Spell A1
+3rd transaction: Anyone ──────────────────► StarGuard B.exec() ──► SubProxy B ──► Star Spell B1
 ```
 
 ## Trust assumptions
