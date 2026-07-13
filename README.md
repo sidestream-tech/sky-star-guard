@@ -81,9 +81,9 @@ To deploy the contract, you can use `Deploy.s.sol` script, set `PRIVATE_KEY` env
 
 ```sh
 # To estimate gas for the script
-forge script script/Deploy.s.sol:Deploy --rpc-url mainnet --sig 'run(address)' 0x...
+forge script script/Deploy.s.sol:Deploy --rpc-url mainnet --sender $(cast wallet address) --sig 'run(address)' 0x...
 # To broadcast live and verify contract on etherscan
-forge script script/Deploy.s.sol:Deploy --rpc-url mainnet --sig 'run(address)' 0x... --broadcast --verify
+forge script script/Deploy.s.sol:Deploy --rpc-url mainnet --sender $(cast wallet address) --sig 'run(address)' 0x... --broadcast --verify
 ```
 
 ## Audits

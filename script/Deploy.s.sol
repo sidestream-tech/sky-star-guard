@@ -16,7 +16,7 @@
 
 pragma solidity ^0.8.24;
 
-import {Script} from "forge-std/Script.sol";
+import {Script, console} from "forge-std/Script.sol";
 import {ScriptTools} from "dss-test/ScriptTools.sol";
 import {StarGuard} from "../src/StarGuard.sol";
 
@@ -24,19 +24,33 @@ interface ChainlogLike {
     function getAddress(bytes32 _key) external view returns (address addr);
 }
 
+// To run this script, use the following command:
+// ETHERSCAN_API_KEY="<KEY>" forge script script/StarGuardDeploy.s.sol:StarGuardDeployScript --rpc-url "<RPC_URL>" --sender $(cast wallet address) --sig "run(address)" 0x...
+
 contract Deploy is Script {
     ChainlogLike internal constant chainlog = ChainlogLike(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
 
     function run(address subProxy) public {
-        uint256 privateKey = vm.envUint("PRIVATE_KEY");
-        address deployer = vm.addr(privateKey);
-        address pauseProxy = chainlog.getAddress("MCD_PAUSE_PROXY");
+        // Check that deployer is not Foundry default
+        // https://getfoundry.sh/guides/scripting-with-solidity/
+        address deployer = msg.sender;
+        require(
+            deployer != 0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38,
+            "msg.sender is not set correctly, ensure you provided --sender"
+        );
 
-        vm.startBroadcast(privateKey);
+        // Debug information
+        console.log("Using deployer: %s", deployer);
+        console.log("Using SubProxy address: %s", subProxy);
 
+        address MCD_PAUSE_PROXY = chainlog.getAddress("MCD_PAUSE_PROXY");
+        console.log("Using MCD_PAUSE_PROXY at %s", MCD_PAUSE_PROXY);
+
+        vm.startBroadcast(deployer);
         address starGuard = address(new StarGuard(subProxy));
-        ScriptTools.switchOwner(starGuard, deployer, pauseProxy);
-
+        ScriptTools.switchOwner(starGuard, deployer, MCD_PAUSE_PROXY);
         vm.stopBroadcast();
+
+        console.log("Deployed StarGuard at %s", subProxy);
     }
 }
