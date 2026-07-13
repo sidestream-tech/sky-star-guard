@@ -85,3 +85,10 @@ forge script script/Deploy.s.sol:Deploy --rpc-url mainnet --sig 'run(address)' 0
 # To broadcast live and verify contract on etherscan
 forge script script/Deploy.s.sol:Deploy --rpc-url mainnet --sig 'run(address)' 0x... --broadcast --verify
 ```
+
+## Audits
+
+Audit reports are available in the [`audits/`](./audits/) directory. The module has been audited by:
+
+- [Cantina](https://cantina.xyz/portfolio/af6da668-1831-43da-8bcd-0ae987238e12)
+- [ChainSecurity](https://www.chainsecurity.com/security-audit/sky-star-guard)
