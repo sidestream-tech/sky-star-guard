@@ -32,7 +32,7 @@ contract Deploy is Script {
 
     function run(address subProxy) public {
         // Check that deployer is not Foundry default
-        // https://getfoundry.sh/guides/scripting-with-solidity/
+        // https://www.getfoundry.sh/config/reference/testing#sender
         address deployer = msg.sender;
         require(
             deployer != 0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38,
