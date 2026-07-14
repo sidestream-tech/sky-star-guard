@@ -25,7 +25,7 @@ interface ChainlogLike {
 }
 
 // To run this script, use the following command:
-// ETHERSCAN_API_KEY="<KEY>" forge script script/StarGuardDeploy.s.sol:StarGuardDeployScript --rpc-url "<RPC_URL>" --sender $(cast wallet address) --sig "run(address)" 0x...
+// ETHERSCAN_API_KEY="<KEY>" RPC_URL="<RPC_URL>" forge script script/Deploy.s.sol:Deploy --rpc-url $RPC_URL --sender $(cast wallet address --account $ACCOUNT) --account $ACCOUNT --sig "run(address)" $SUBPROXY_ADDRESS 
 
 contract Deploy is Script {
     ChainlogLike internal constant chainlog = ChainlogLike(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
